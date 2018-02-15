@@ -139,7 +139,7 @@ public class ARSCDecoder {
         }
     }
 
-    private ResTypeSpec readTableTypeSpec() throws AndrolibException, IOException {
+    private void readTableTypeSpec() throws AndrolibException, IOException {
         mTypeSpec = readSingleTableTypeSpec();
         addTypeSpec(mTypeSpec);
 
@@ -150,6 +150,12 @@ public class ARSCDecoder {
             resTypeSpec = readSingleTableTypeSpec();
             addTypeSpec(resTypeSpec);
             type = nextChunk().type;
+
+            // We've detected sparse resources, lets record this so we can rebuild in that same format (sparse/not)
+            // with aapt2. aapt1 will ignore this.
+            if (! mResTable.getSparseResources()) {
+                mResTable.setSparseResources(true);
+            }
         }
 
         while (type == Header.TYPE_TYPE) {
@@ -164,8 +170,6 @@ public class ARSCDecoder {
 
             addMissingResSpecs();
         }
-
-        return mTypeSpec;
     }
 
     private ResTypeSpec readSingleTableTypeSpec() throws AndrolibException, IOException {
